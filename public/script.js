@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const file = files[0];
         
-        if (file.type !== 'application/pdf') {
+        if (file.type && file.type !== 'application/pdf' && file.type !== 'application/octet-stream') {
             alert('Please upload a valid PDF file.');
             return;
         }
