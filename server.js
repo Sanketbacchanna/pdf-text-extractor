@@ -26,6 +26,9 @@ app.post('/api/extract-text', upload.single('invoice'), async (req, res) => {
         }
 
         const pdfData = req.file.buffer;
+        
+        // Save the file for debugging
+        fs.writeFileSync(path.join(__dirname, 'debug_uploaded.pdf'), pdfData);
 
         // Parse the PDF
         const parser = new PDFParse({ data: pdfData });
