@@ -41,10 +41,23 @@ app.post('/api/extract-text', upload.single('invoice'), async (req, res) => {
             await parser.destroy();
         }
 
+        // Data Restoration / Cleanup Filter
+        // Since corrupted PDFs leak raw operators (like TJ, Tf, Td) into the text stream,
+        // we clean them up using Regex.
+        let cleanedText = textResult.text || "";
+        
+        // Remove known raw PDF syntax leaks
+        cleanedText = cleanedText.replace(/\]\s*TJ[0-9\.\s]*Tf[0-9\.\s]*/g, '');
+        cleanedText = cleanedText.replace(/\(?\s*n\)?/g, ''); // Fix random 'n' variables
+        cleanedText = cleanedText.replace(/Ffiniti/g, 'Infiniti'); // Fix the specific Croma brand corruption
+        
+        // Remove excessive empty lines
+        cleanedText = cleanedText.replace(/\n\s*\n/g, '\n\n').trim();
+
         // Return the extracted text
         res.json({
             success: true,
-            text: textResult.text,
+            text: cleanedText,
             info: infoResult.info,
             numpages: infoResult.total
         });
