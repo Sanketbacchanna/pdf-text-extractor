@@ -1,6 +1,6 @@
 const express = require('express');
 const multer = require('multer');
-const pdfParse = require('pdf-parse');
+const { PDFParse } = require('pdf-parse');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
@@ -28,14 +28,22 @@ app.post('/api/extract-text', upload.single('invoice'), async (req, res) => {
         const pdfData = req.file.buffer;
 
         // Parse the PDF
-        const data = await pdfParse(pdfData);
+        const parser = new PDFParse({ data: pdfData });
+        
+        let textResult, infoResult;
+        try {
+            textResult = await parser.getText();
+            infoResult = await parser.getInfo();
+        } finally {
+            await parser.destroy();
+        }
 
         // Return the extracted text
         res.json({
             success: true,
-            text: data.text,
-            info: data.info,
-            numpages: data.numpages
+            text: textResult.text,
+            info: infoResult.info,
+            numpages: infoResult.total
         });
 
     } catch (error) {
